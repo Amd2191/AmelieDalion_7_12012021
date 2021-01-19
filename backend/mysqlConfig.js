@@ -13,14 +13,14 @@ const DB_connection = mysql.createConnection({
     host     : HOST,
     user     : SQL_USER,
     password : SQL_PASSWORD,
-    database: 'groupomania'
+    database: 'database_development_groupomania'
 });
 
 DB_connection.connect((err) => {
     if (err) {
         throw err;
     }
-    console.log('Connected');
+    console.log('Database successfully connected');
 });
 
 

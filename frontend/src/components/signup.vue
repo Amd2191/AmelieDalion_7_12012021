@@ -12,33 +12,42 @@
             <h1 class="create-acc text-center">Créez votre compte</h1>
             <div class="signup-inner text-center">
               <h3 class="title">Wellcome to Adda</h3>
-              <form method="POST" v-on:submit.prevent="submit" class="signup-inner--form">
+              <form v-on:submit.prevent="submitForm" class="signup-inner--form">
                 <div class="row">
                   <div class="col-12">
-                    <input type="email" v-model.trim="$v.email.$model"
-                      :class="{'is-invalid':validationStatus($v.email)}" class="single-field" placeholder="Email">
-                    <div v-if="!$v.email.required" class="invalid-feedback">Votre email est requis</div>
-                    <div v-if="!$v.email.email" class="invalid-feedback">Votre email n'est pas valide</div>
+                    <input type="email" v-model="email" :class="{'is-invalid':validationStatus($v.email)}"
+                      class="single-field" placeholder="Email" id="email">
+                    <div v-if="!$v.email.required && $v.email.$dirty" class='text-danger'>Votre email est requis</div>
+                    <div v-if="!$v.email.email && $v.email.$dirty" class="text-danger">Votre email n'est pas valide
+                    </div>
                   </div>
                   <div class="col-md-6">
-                    <input type="text" v-model.trim="$v.name.$model" :class="{'is-invalid':validationStatus($v.name)}"
-                      class="single-field" placeholder="Prénom">
-                    <div v-if="!$v.name.required" class="invalid-feedback">Votre prénom est requis</div>
+                    <input type="text" v-model="firstname" :class="{'is-invalid':validationStatus($v.firstname)}"
+                      class="single-field" placeholder="Prénom" id="firstname">
+                    <div v-if="!$v.firstname.required && $v.firstname.$dirty" class="text-danger">Votre prénom est
+                      requis</div>
+                    <div v-if="!$v.firstname.alpha && $v.firstname.$dirty" class="text-danger">Votre prénom ne peut
+                      contenir que des lettres</div>
                   </div>
                   <div class="col-md-6">
-                    <input type="text" v-model.trim="$v.name.$model" :class="{'is-invalid':validationStatus($v.name)}"
-                      class="single-field" placeholder="Nom">
-                    <div v-if="!$v.name.required" class="invalid-feedback">Votre nom est requis</div>
+                    <input type="text" v-model="lastname" :class="{'is-invalid':validationStatus($v.lastname)}"
+                      class="single-field" placeholder="Nom" id="lastname">
+                    <div v-if="!$v.lastname.required && $v.lastname.$dirty" class="text-danger">Votre nom est requis
+                    </div>
+                    <div v-if="!$v.lastname.alpha && $v.lastname.$dirty" class="text-danger">Votre nom ne peut contenir
+                      que des lettres</div>
                   </div>
                   <div class="col-12">
-                    <input type="password" v-model.trim="$v.password.$model"
-                      :class="{'is-invalid':validationStatus($v.password)}" class="single-field"
-                      placeholder="Mot de passe">
-                    <div v-if="!$v.password.required" class="invalid-feedback">Votre mot de passe est requis.</div>
-                    <div v-if="!$v.password.minLength" class="invalid-feedback">Votre mot de passe doit faire plus de
-                      {{$v.password.$params.minLength.min}} caractères.</div>
-                    <div v-if="!$v.password.maxLength" class="invalid-feedback">Votre mot de passe doit faire moins de
-                      {{$v.password.$params.maxLength.max}} caractères.</div>
+                    <input type="password" v-model="password" :class="{'is-invalid':validationStatus($v.password)}"
+                      class="single-field" placeholder="Mot de passe" id="password">
+                    <div v-if="!$v.password.required && $v.password.$dirty" class="text-danger">Votre mot de passe est
+                      requis.</div>
+                    <div v-if="!$v.password.minLength && $v.password.$dirty" class="text-danger">Votre mot de passe doit
+                      faire plus de
+                      {{$v.password.$params.minLength}} caractères.</div>
+                    <div v-if="!$v.password.maxLength && $v.password.$dirty" class="text-danger">Votre mot de passe doit
+                      faire moins de
+                      {{$v.password.$params.maxLength}} caractères.</div>
                   </div>
                   <div class="col-12">
                     <div class="form-group row">
@@ -47,7 +56,7 @@
                     </div>
                   </div>
                   <div class="col-12">
-                    <button class="submit-btn">Créer votre compte</button>
+                    <button class="submit-btn" @click="submitForm()">Créer votre compte</button>
                   </div>
                 </div>
                 <h6 class="avatar-link">Pour votre avatar, vous pouvez utiliser <a
@@ -65,7 +74,8 @@
     required,
     email,
     minLength,
-    maxLength
+    maxLength,
+    alpha
   } from 'vuelidate/lib/validators'
 
   export default {
@@ -86,8 +96,13 @@
         required,
         email
       },
-      name: {
-        required
+      firstname: {
+        required,
+        alpha
+      },
+      lastname: {
+        required,
+        alpha
       },
       password: {
         required,
@@ -101,24 +116,29 @@
     },
     methods: {
 
-      resetData: function () {
-        this.firstname = '';
-        this.lastname = '';
-        this.email = '';
-        this.password = '';
-        this.avatar = ''
-      },
-
       validationStatus: function (validation) {
         return typeof validation != "undefined" ? validation.$error : false;
       },
 
-      submit: function () {
+      submitForm: function () {
+        // make sure every data entered is validated
         this.$v.$touch();
-        if (this.$v.$pendding || this.$v.$error) return;
-        alert('Data submit');
-        this.$v.$reset();
-        this.resetData();
+        if (!this.$v.$invalid) {
+          return;
+        } else {
+          this.$axios.post('http://localhost:3000/api/user/signup', this.user)
+            .then(response => {
+              console.log(response);
+              this.$router.push('/')
+              this.firstname = '';
+              this.lastname = '';
+              this.email = '';
+              this.password = '';
+              this.avatar = ''
+            }).catch((error) => {
+              console.log(error)
+            })
+        }
       }
     }
   }
