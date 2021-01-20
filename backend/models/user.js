@@ -6,7 +6,9 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
 
     static associate(models) {
-      models.User.hasMany(models.Post)
+      models.User.hasMany(models.Post);
+      models.User.hasMany(models.Comment);
+      models.User.hasMany(models.Like);
     }
   };
   User.init({
