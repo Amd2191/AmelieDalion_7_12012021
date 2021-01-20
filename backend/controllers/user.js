@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const models = require('../models');
 var asyncModule = require('async');
+const fs = require('fs');
 
 const regexEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const regexPassword = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{6,10})/;
@@ -67,7 +68,7 @@ exports.signup = (req, res, next) => {
                     username: username,
                     password: hash,
                     bio: bio,
-                    picture: picture,
+                    picture: `${req.protocol}://${req.get('host')}/images/${picture}`,
                     isAdmin: 0
                 })
                 .then(function (newUser) {
@@ -183,8 +184,8 @@ exports.getUser = (req, res, next) => {
         }));
 };
 exports.modifyUser = (req, res, next) => {
-    var bio=req.body.bio;
-    var picture=req.body.picture;
+    var bio = req.body.bio;
+    var picture = req.body.picture;
 
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
@@ -193,49 +194,69 @@ exports.modifyUser = (req, res, next) => {
     asyncModule.waterfall([
         function (done) {
             models.User.findOne({
-                attributes: ['id', 'bio', 'picture'],
-                where: {id: userId}
-            })
-            .then(userFound => {
-                done(null, userFound);
-            })
-            .catch(function(err){
-                return res.status(500).json({'error': 'unable to verify user'});
-            });
+                    attributes: ['id', 'bio', 'picture'],
+                    where: {
+                        id: userId
+                    }
+                })
+                .then(userFound => {
+                    done(null, userFound);
+                })
+                .catch(function (err) {
+                    return res.status(500).json({
+                        'error': 'unable to verify user'
+                    });
+                });
         },
-        (userFound,done)=>{
-            if(userFound){
+        (userFound, done) => {
+            if (userFound) {
                 userFound.update({
-                    bio:(bio ? bio:userFound.bio),
-                    picture:(picture ? picture:userFound.picture)
-                }).then(function() {
+                    bio: (bio ? bio : userFound.bio),
+                    picture: (picture ? `${req.protocol}://${req.get('host')}/images/${picture}` : userFound.picture)
+                }).then(function () {
                     done(userFound);
-                  }).catch(function(err) {
-                    res.status(500).json({ 'error': 'cannot update user' });
-                  });
-                } else {
-                  res.status(404).json({ 'error': 'user not found' });
-                }
+                }).catch(function (err) {
+                    res.status(500).json({
+                        'error': 'cannot update user'
+                    });
+                });
+            } else {
+                res.status(404).json({
+                    'error': 'user not found'
+                });
             }
-    ], (userFound)=>{
-        if (userFound){
+        }
+    ], (userFound) => {
+        if (userFound) {
             return res.status(201).json(userFound);
-        }else{
-            return res.status(500).json({'error':'cannot update user profile'});
+        } else {
+            return res.status(500).json({
+                'error': 'cannot update user profile'
+            });
         }
     });
 };
 
-
-
-
-        // exports.deleteUser = (req, res, next) => {
-        //     db.query(`DELETE FROM users WHERE users.id = ${req.params.id}`, (error, result, field) => {
-        //         if (error) {
-        //             return res.status(400).json({
-        //                 error
-        //             });
-        //         }
-        //         return res.status(200).json(result);
-        //     });
-        // }
+exports.deleteUser = (req, res, next) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
+    const userId = decodedToken.userId;
+    models.User.findOne({
+        where: {id: userId}
+    })
+    .then(user=>{
+        const filename=user.picture.split('/images/')[1];
+        fs.unlink(`images/${filename}`, () => {
+            user.destroy({
+                    id: req.params.id
+                })
+                .then(() => res.status(200).json({
+                    message: 'User deleted'
+                }))
+                .catch(error => res.status(404).json({'error':'user not found'
+                }));
+        });
+    })
+    .catch(error => res.status(500).json({'error':'cannot delete user'
+    }));
+}

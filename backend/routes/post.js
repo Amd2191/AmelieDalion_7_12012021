@@ -3,11 +3,10 @@ const router = express.Router()
 
 const postCtrl = require('../controllers/post')
 
-const auth = require('../middlewares/auth')
 const multer = require('../middlewares/multer-config')
 
-router.get('/',auth,postCtrl.getAllPosts);
-router.post('/',auth,multer,postCtrl.createPost);
-router.delete('/:id',auth,postCtrl.deletePost)
+router.post('/post/create',postCtrl.createPost);
+router.get('/post',postCtrl.getAllPosts);
+router.delete('/:id',postCtrl.deletePost)
 
 module.exports = router

@@ -1,56 +1,129 @@
 const fs = require('fs');
-const { post } = require('../routes/user');
+const models = require('../models');
+const jwt = require('jsonwebtoken');
+var asyncModule = require('async');
 
-exports.createPost=(req,res,next)=>{
-    const postObject=JSON.parse(req.body.post);
-    const post= new post({...postObject});
-    database.query('INSERT INTO post SET ?',post,function (error, results, fields) {
-        if (error) {
-            res.send({
-                "code": 400,
-                "failed": "error occured"
-            })
+exports.createPost = (req, res, next) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
+    const userId = decodedToken.userId;
+    var title = req.body.title;
+    var content = req.body.content;
+    var attachment = req.body.picture;
+    if (title == null || content == null) {
+        return res.status(400).json({
+            'error': 'missing parameters'
+        });
+    }
+    asyncModule.waterfall([
+        function (done) {
+            models.User.findOne({
+                    attributes: ['id'],
+                    where: {
+                        id: userId
+                    }
+                })
+                .then(function (userFound) {
+                    done(null, userFound);
+                })
+                .catch(function (err) {
+                    return res.status(500).json({
+                        'error': 'unable to verify user'
+                    });
+                });
+        },
+        function (userFound, done) {
+            if (userFound) {
+                models.Post.create({
+                        title: title,
+                        content: content,
+                        attachment: `${req.protocol}://${req.get('host')}/images/${attachment}`,
+                        likes: 0,
+                        UserId: userFound.id
+                    })
+                    .then(newPost => {
+                        done(newPost);
+                    });
+            } else {
+                res.status(404).json({
+                    'error': 'user not found'
+                });
+            }
+        }
+    ], function (newPost) {
+        if (newPost) {
+            return res.status(201).json(newPost);
         } else {
-            res.send({
-                "code": 200,
-                "success": "user registered successfully"
+            return res.status(500).json({
+                'error': 'cannot post your post'
             });
         }
-    })
-        .catch(error => res.status(500).json({
-            error
-        }));
+    });
 };
 
-exports.getAllPosts = (req,res,next) =>{
-    post.find()
-    .then(posts => res.status(200).json(posts))
-        .catch(error => res.status(400).json({
-            error
-        }));
+exports.getAllPosts = (req, res, next) => {
+    var order = req.query.order;
+    var fields = req.query.fields;
+    models.Post.findAll({
+            order: [(order != null) ? order.split(':') : ['title', 'ASC']],
+            attributes: (fields !== '*' && fields != null) ? fields.split(',') : null,
+            include: [{
+                model: models.User,
+                attributes: ['username']
+            }]
+        })
+        .then(posts => {
+            if (posts) {
+                res.status(200).json(posts);
+            } else {
+                res.status(404).json({
+                    'error': 'no post found'
+                });
+            }
+        })
+        .catch(function (err) {
+            console.log(err);
+            res.status(500).json({
+                "error": "invalid fields"
+            });
+        });
 };
 
 exports.deletePost = (req, res, next) => {
-    Post.findOne({
-            _id: req.params.id
+    try{
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
+    const userId = decodedToken.userId;
+    const isAdmin = models.User.findOne({
+        where: {
+            id: userId
+        }
+    });
+    const post = models.Post.findone({
+        where: {
+            id: req.params.id
+        }
+    });
+    if (userId === post.UserId || isAdmin.admin === true) {
+        const filename = post.attachment.split('/images/')[1];
+        fs.unlink(`images/${filename}`, () => {
+            post.destroy({
+                    id: post.id
+                })
+                .then(() => res.status(200).json({
+                    message: 'Post deleted'
+                }))
+                .catch(error => res.status(404).json({
+                    'error': 'post not found'
+                }));
+        });
+    } else {
+        res.status(400).json({
+            'error': 'You are not allowed to delete this post'
         })
-        .then(post => {
-
-            const filename = post.imageUrl.split('/images/')[1];
-            fs.unlink(`images/${filename}`, () => {
-
-                post.deleteOne({
-                        _id: req.params.id
-                    })
-                    .then(() => res.status(200).json({
-                        message: 'Objet supprimé !'
-                    }))
-                    .catch(error => res.status(400).json({
-                        error
-                    }));
-            });
-        })
-        .catch(error => res.status(500).json({
-            error
-        }));
+    }
+}catch(error) {
+        res.status(500).json({
+        'error': 'cannot delete post'
+    })};
 };
