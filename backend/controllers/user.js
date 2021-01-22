@@ -4,6 +4,7 @@ const models = require('../models');
 var asyncModule = require('async');
 const fs = require('fs');
 
+
 const regexEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const regexPassword = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{6,10})/;
 
@@ -12,26 +13,31 @@ exports.signup = (req, res, next) => {
     var email = req.body.email;
     var username = req.body.username;
     var password = req.body.password;
-    var picture = req.body.picture;
     var bio = req.body.bio;
-    if (email == null || username == null || password == null || picture == null) {
+    var picture=`${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+
+    if (email == null || username == null || password == null) {
         return res.status(400).json({
             'error': 'missing parameters'
         });
     }
     if (username.length >= 13 || username.length <= 4) {
+        console.log('Problème avec username');
         return res.status(400).json({
             'error': 'wrong username (must be length 5 - 12)'
         });
+
     }
     if (!regexEmail.test(email)) {
+        console.log('Problème avec email');
         return res.status(400).json({
             'error': 'email is not valid'
         });
     }
     if (!regexPassword.test(password)) {
+        console.log('Problème avec password');
         return res.status(400).json({
-            'error': 'password invalid (must length 4 - 8 and include 1 number at least)'
+            'error': 'password invalid '
         });
     }
     asyncModule.waterfall([
@@ -68,7 +74,7 @@ exports.signup = (req, res, next) => {
                     username: username,
                     password: hash,
                     bio: bio,
-                    picture: `${req.protocol}://${req.get('host')}/images/${picture}`,
+                    picture:picture,
                     isAdmin: 0
                 })
                 .then(function (newUser) {

@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
             next();
         } else {
             res.status(400).json({
-                message: "Votre mot de passe dois comporter au moins 6 caractères, une minuscule, une majuscule et un caractère spécial de cette liste: ! @ $ # ^ * & %"
+                message: "Votre mot de passe doit comporter au moins 6 caractères, une minuscule, une majuscule et un caractère spécial de cette liste: ! @ $ # ^ * & %"
             });
         }
     } else {

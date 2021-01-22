@@ -18,9 +18,8 @@ app.use((req, res, next) => {
 });
 
 app.use(helmet());
-app.listen(8080,function(){
-    console.log('Serveur en écoute');
-});
+app.use(express.static(__dirname+'/images'));
+
 
 
 app.use('/api', postRoutes);

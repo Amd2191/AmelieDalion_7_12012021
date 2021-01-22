@@ -3,6 +3,7 @@ const models = require('../models');
 const jwt = require('jsonwebtoken');
 var asyncModule = require('async');
 
+
 exports.createPost = (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
@@ -34,10 +35,24 @@ exports.createPost = (req, res, next) => {
         },
         function (userFound, done) {
             if (userFound) {
+                let attachment=`${req.file.filename}`;
+                if(req.file!=undefined){
+                    (req,res)=>{
+                        try{
+                            res.send(req.file);
+                        }catch(err){
+                            res.status(400).json({error});
+                        }
+                    }
+                }
+                else{
+                    attachment=null;
+                }
+                let date= new Date();
                 models.Post.create({
                         title: title,
                         content: content,
-                        attachment: `${req.protocol}://${req.get('host')}/images/${attachment}`,
+                        attachment: `${req.protocol}://${req.get('host')}/images/posts/${date-attachment}`,
                         likes: 0,
                         UserId: userFound.id
                     })

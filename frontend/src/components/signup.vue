@@ -12,55 +12,33 @@
             <h1 class="create-acc text-center">Créez votre compte</h1>
             <div class="signup-inner text-center">
               <h3 class="title">Wellcome to Adda</h3>
-              <form v-on:submit.prevent="submitForm" class="signup-inner--form">
+              <form v-on:submit.prevent="submitForm" class="signup-inner--form" enctype="multipart/form-data">
                 <div class="row">
                   <div class="col-12">
-                    <input type="email" v-model="email" :class="{'is-invalid':validationStatus($v.email)}"
-                      class="single-field" placeholder="Email" id="email">
-                    <div v-if="!$v.email.required && $v.email.$dirty" class='text-danger'>Votre email est requis</div>
-                    <div v-if="!$v.email.email && $v.email.$dirty" class="text-danger">Votre email n'est pas valide
-                    </div>
+                    <input type="email" class="single-field" placeholder="Email" id="email">
                   </div>
-                  <div class="col-md-6">
-                    <input type="text" v-model="firstname" :class="{'is-invalid':validationStatus($v.firstname)}"
-                      class="single-field" placeholder="Prénom" id="firstname">
-                    <div v-if="!$v.firstname.required && $v.firstname.$dirty" class="text-danger">Votre prénom est
-                      requis</div>
-                    <div v-if="!$v.firstname.alpha && $v.firstname.$dirty" class="text-danger">Votre prénom ne peut
-                      contenir que des lettres</div>
+                  <div class="col-md-12">
+                    <input type="text" class="single-field" placeholder="Pseudo" id="username">
                   </div>
-                  <div class="col-md-6">
-                    <input type="text" v-model="lastname" :class="{'is-invalid':validationStatus($v.lastname)}"
-                      class="single-field" placeholder="Nom" id="lastname">
-                    <div v-if="!$v.lastname.required && $v.lastname.$dirty" class="text-danger">Votre nom est requis
-                    </div>
-                    <div v-if="!$v.lastname.alpha && $v.lastname.$dirty" class="text-danger">Votre nom ne peut contenir
-                      que des lettres</div>
+                  <div class="col-md-12">
+                    <textarea class="single-field" placeholder="Description" id="bio"></textarea>
                   </div>
                   <div class="col-12">
-                    <input type="password" v-model="password" :class="{'is-invalid':validationStatus($v.password)}"
-                      class="single-field" placeholder="Mot de passe" id="password">
-                    <div v-if="!$v.password.required && $v.password.$dirty" class="text-danger">Votre mot de passe est
-                      requis.</div>
-                    <div v-if="!$v.password.minLength && $v.password.$dirty" class="text-danger">Votre mot de passe doit
-                      faire plus de
-                      {{$v.password.$params.minLength}} caractères.</div>
-                    <div v-if="!$v.password.maxLength && $v.password.$dirty" class="text-danger">Votre mot de passe doit
-                      faire moins de
-                      {{$v.password.$params.maxLength}} caractères.</div>
-                  </div>
-                  <div class="col-12">
-                    <div class="form-group row">
-                      <label for="avatar">Choisissez votre avatar </label>
-                      <input type="file" class="form-control-file" id="avatar">
+                    <input type="password" class="single-field" placeholder="Mot de passe"
+                      id="password">
+                    <div class="col-12">
+                      <div class="form-group row">
+                        <label for="picture">Choisissez votre avatar </label>
+                        <input ref="file" type="file" class="form-control-file" id="picture" v-on:change="handleFileUpload()">
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <button class="submit-btn">Créer votre compte</button>
                     </div>
                   </div>
-                  <div class="col-12">
-                    <button class="submit-btn" @click="submitForm()">Créer votre compte</button>
-                  </div>
+                  <h6 class="avatar-link">Pour votre avatar, vous pouvez utiliser <a
+                      href="https://avatarmaker.com/">Avatar Maker</a></h6>
                 </div>
-                <h6 class="avatar-link">Pour votre avatar, vous pouvez utiliser <a
-                    href="https://avatarmaker.com/">Avatar Maker</a></h6>
               </form>
             </div>
           </div>
@@ -69,79 +47,53 @@
     </div>
   </div>
 </template>
+
 <script>
-  import {
-    required,
-    email,
-    minLength,
-    maxLength,
-    alpha
-  } from 'vuelidate/lib/validators'
+
+  import axios from "axios"
 
   export default {
     name: 'Signup',
-    data: function () {
+    data() {
       return {
-        user: {
           email: '',
-          firstname: '',
-          lastname: '',
+          username: '',
+          bio: '',
           password: '',
-          avatar: '',
-        }
+          picture: ''
       }
     },
-    validations: {
-      email: {
-        required,
-        email
-      },
-      firstname: {
-        required,
-        alpha
-      },
-      lastname: {
-        required,
-        alpha
-      },
-      password: {
-        required,
-        minLength: minLength(6),
-        maxLenght: maxLength(18)
-      },
-      avatar: {
-        required
-      },
 
-    },
     methods: {
 
       validationStatus: function (validation) {
         return typeof validation != "undefined" ? validation.$error : false;
       },
+      handleFileUpload(){
+        this.picture=this.$refs.file.files[0];
+      },
 
       submitForm: function () {
-        // make sure every data entered is validated
-        this.$v.$touch();
-        if (!this.$v.$invalid) {
-          return;
-        } else {
-          this.$axios.post('http://localhost:3000/api/user/signup', this.user)
+        let username=document.getElementById('username').value;
+        let email=document.getElementById('email').value;
+        let password=document.getElementById('password').value;
+        let picture=this.picture ;
+        let bio=document.getElementById('bio').value;
+          axios.post('http://localhost:3000/api/signup', {
+            email:email,
+            username:username,
+            password:password,
+            picture:picture,
+            bio:bio
+          })
             .then(response => {
               console.log(response);
-              this.$router.push('/')
-              this.firstname = '';
-              this.lastname = '';
-              this.email = '';
-              this.password = '';
-              this.avatar = ''
             }).catch((error) => {
               console.log(error)
             })
         }
       }
     }
-  }
 </script>
 <style lang='scss'>
   .timeline-bg-content {
