@@ -22,7 +22,7 @@
                 <input type="password" placeholder="Mot de passe" class="single-field form-control" id='password-login' v-model="password">
               </div>
               <div class="col-12 col-sm-auto">
-                <button class="submit-btn" @click="login()">Se connecter</button>
+                <button class="connect-btn" @click="login()">Se connecter</button>
               </div>
             </div>
           </div>
@@ -73,6 +73,15 @@
 </script>
 
 <style lang="scss">
+  .connect-btn {
+    font-size: 16px;
+    font-weight: 500;
+    color: #dc4734!important;
+    padding: 8px 10px !important;
+    display: block;
+    background-color: #ffffff !important;
+    width: 100%;
+  }
   .timeline-logo-area {
     padding: 0 30px;
     height: 50px;

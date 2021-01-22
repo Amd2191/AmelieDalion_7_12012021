@@ -14,7 +14,7 @@ exports.signup = (req, res, next) => {
     var username = req.body.username;
     var password = req.body.password;
     var bio = req.body.bio;
-    var picture=`${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    var picture=req.body.picture;
 
     if (email == null || username == null || password == null) {
         return res.status(400).json({
@@ -70,7 +70,7 @@ exports.signup = (req, res, next) => {
         },
         function (userFound, hash, done) {
             var newUser = models.User.create({
-                    email: email,
+                email: email,
                     username: username,
                     password: hash,
                     bio: bio,

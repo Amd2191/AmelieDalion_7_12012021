@@ -52,7 +52,7 @@ exports.createPost = (req, res, next) => {
                 models.Post.create({
                         title: title,
                         content: content,
-                        attachment: `${req.protocol}://${req.get('host')}/images/posts/${date-attachment}`,
+                        attachment: attachment,
                         likes: 0,
                         UserId: userFound.id
                     })

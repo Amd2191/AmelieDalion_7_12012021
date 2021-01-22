@@ -14,31 +14,42 @@
               <h3 class="title">Wellcome to Adda</h3>
               <form v-on:submit.prevent="submitForm" class="signup-inner--form" enctype="multipart/form-data">
                 <div class="row">
-                  <div class="col-12">
-                    <input type="email" class="single-field" placeholder="Email" id="email">
+                  <div class="col-12" :class="{ 'form-group--error': $v.email.$error }">
+                    <input type="email" class="single-field" placeholder="Email" id="email"
+                      v-model.trim="$v.email.$model">
                   </div>
-                  <div class="col-md-12">
-                    <input type="text" class="single-field" placeholder="Pseudo" id="username">
+                  <div class="error" v-if="!$v.email.required">Ce champ est requis.</div>
+                  <div class="error" v-if="!$v.email.email">Votre email n'est pas valide.</div>
+                  <div class="col-md-12" :class="{ 'form-group--error': $v.username.$error }">
+                    <input type="text" class="single-field" placeholder="Pseudo" id="username"
+                      v-model.trim="$v.username.$model">
                   </div>
+                  <div class="error" v-if="!$v.username.required">Ce champ est requis.</div>
+                  <div class="error" v-if="!$v.username.alpha">Ce champ ne peut contenir que des lettres.</div>
                   <div class="col-md-12">
                     <textarea class="single-field" placeholder="Description" id="bio"></textarea>
                   </div>
-                  <div class="col-12">
-                    <input type="password" class="single-field" placeholder="Mot de passe"
-                      id="password">
-                    <div class="col-12">
-                      <div class="form-group row">
-                        <label for="picture">Choisissez votre avatar </label>
-                        <input ref="file" type="file" class="form-control-file" id="picture" v-on:change="handleFileUpload()">
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <button class="submit-btn">Créer votre compte</button>
+                  <div class="col-12" :class="{ 'form-group--error': $v.password.$error }">
+                    <input type="password" class="single-field" placeholder="Mot de passe" id="password"
+                      v-model.trim="$v.password.$model">
+                  </div>
+                  <div class="error" v-if="!$v.password.required">Ce champ est requis.</div>
+                  <div class="error" v-if="!$v.password.minLength">Votre mot de passe dois faire au moins
+                    {{$v.password.$params.minLength.min}} caractères.</div>
+                    <div class="error" v-if="!$v.password.maxLength">Votre mot de passe dois faire moins de
+                    {{$v.password.$params.maxLength.max}} caractères.</div>
+                  <div class="col-12" :class="{ 'form-group--error': $v.picture.$error }">
+                    <div class="row">
+                      <label for="picture">Choisissez votre avatar </label>
+                      <input ref="file" type="file" class="form-control-file" id="picture" @change="onFileChange">
                     </div>
                   </div>
-                  <h6 class="avatar-link">Pour votre avatar, vous pouvez utiliser <a
-                      href="https://avatarmaker.com/">Avatar Maker</a></h6>
+                  <div class="col-12">
+                    <button class="submit-btn">Créer votre compte</button>
+                  </div>
                 </div>
+                <h6 class="avatar-link">Pour votre avatar, vous pouvez utiliser <a
+                    href="https://avatarmaker.com/">Avatar Maker</a></h6>
               </form>
             </div>
           </div>
@@ -49,53 +60,90 @@
 </template>
 
 <script>
-
   import axios from "axios"
-
+  import {
+    required,
+    minLength,
+    maxLength,
+    email,
+    alpha
+  } from 'vuelidate/lib/validators'
   export default {
     name: 'Signup',
     data() {
       return {
-          email: '',
-          username: '',
-          bio: '',
-          password: '',
-          picture: ''
+        email: '',
+        username: '',
+        bio: '',
+        password: '',
+        picture: '',
+        file: null
       }
     },
-
+    validations: {
+      email: {
+        required,
+        email
+      },
+      username: {
+        required,
+        alpha,
+      },
+      password: {
+        required,
+        minLength: minLength(6),
+        maxLength: maxLength(10)
+      },
+      picture: {
+        required
+      }
+    },
     methods: {
 
       validationStatus: function (validation) {
         return typeof validation != "undefined" ? validation.$error : false;
       },
-      handleFileUpload(){
-        this.picture=this.$refs.file.files[0];
+      onFileChange(e) {
+        var files = e.target.files || e.dataTransfer.files;
+        if (!files.length)
+          return;
+        this.createImage(files[0]);
       },
-
+      createImage(file) {
+        var reader = new FileReader();
+        var vm = this;
+        vm.image = new Image();
+        reader.onload = (e) => {
+          vm.image = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      },
       submitForm: function () {
-        let username=document.getElementById('username').value;
-        let email=document.getElementById('email').value;
-        let password=document.getElementById('password').value;
-        let picture=this.picture ;
-        let bio=document.getElementById('bio').value;
-          axios.post('http://localhost:3000/api/signup', {
-            email:email,
-            username:username,
-            password:password,
-            picture:picture,
-            bio:bio
+        let username = document.getElementById('username').value;
+        let email = document.getElementById('email').value;
+        let password = document.getElementById('password').value;
+        let bio = document.getElementById('bio').value;
+        axios.post('http://localhost:3000/api/signup', {
+            email: email,
+            username: username,
+            password: password,
+            picture: this.image,
+            bio: bio
           })
-            .then(response => {
-              console.log(response);
-            }).catch((error) => {
-              console.log(error)
-            })
-        }
+          .then(response => {
+            console.log(response);
+            this.$swal("Bienvenue", "Vous pouvez maintenant vous connecter", "success");
+          }).catch((error) => {
+            console.log(error)
+          })
       }
     }
+  }
 </script>
 <style lang='scss'>
+.error{
+  color:red;
+}
   .timeline-bg-content {
     background-image: url(../../public/images/melt-v04-06.jpg);
     background-size: cover;

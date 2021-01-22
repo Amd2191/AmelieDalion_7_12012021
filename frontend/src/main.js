@@ -3,9 +3,14 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import Vuelidate from 'vuelidate'
+import VueSweetalert2 from 'vue-sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css';
+
+Vue.use(Vuelidate);
+Vue.use(VueSweetalert2);
 
 Vue.config.productionTip = false
-Vue.use(Vuelidate);
+
 
 new Vue({
   router,
