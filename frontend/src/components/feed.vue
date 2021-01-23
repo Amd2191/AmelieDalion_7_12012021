@@ -7,16 +7,19 @@
                         <aside class="widget-area">
                             <!-- widget single item start -->
                             <div class="card card-profile widget-item p-0">
-                                <div class="profile-banner">
+                                <div class="profile-banner" v-for="user in userInfo" :key="user.id">
+                                    <router-link to='/profile' href="profile.html">
                                     <figure class="profile-banner-small">
                                         <a href="profile.html" class="profile-thumb-2">
-                                            <img src="../../public/images/AvatarMaker (6).png" alt="">
+                                            <img :src="user.picture" alt="profile_picture">
                                         </a>
                                     </figure>
                                     <div class="profile-desc text-center">
-                                        <h6 class="author"><a href="profile.html">Dimbel Lebmid</a></h6>
-                                        <p>Any one can join with but Social network us if you want Any one can join with us if you want</p>
+                                        <h6 class="author">
+                                            {{user.username}}</h6>
+                                        <p>{{user.bio}}</p>
                                     </div>
+                                    </router-link>
                                 </div>
                             </div>
                         </aside>
@@ -197,8 +200,33 @@
         </div>
         </main>
 </template>
-export default {
-  name: 'feed',
-  props: {
+<script>
+import axios from "axios"
+  export default {
+    name: 'feed',
+    data(){
+      return {
+        token:'',
+        userInfo:null
+      }
+    },
+    // beforeMount(){
+    //   this.getUserProfile()
+    // },
+    methods:{
+      getUserProfile(){
+        var token=localStorage.getItem('token');
+        axios.get('http://localhost:3000/api/user/profile/',{headers:{
+          'Authorization': 'Bearer '+token
+        }})
+        .then(response=> {
+          console.log(response);
+          this.userInfo=response})
+        .catch((error) => {
+            console.log(error)
+          })
+      }
+    }
+
   }
-}
+</script>

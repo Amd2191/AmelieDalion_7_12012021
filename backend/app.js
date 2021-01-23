@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
+const path = require('path');
 
 const postRoutes = require('./routes/post');
 const userRoutes=require('./routes/user');
@@ -15,17 +16,12 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
 });
-app.use(bodyParser.json({
-    limit: '50mb'
-  }));
-  
-  app.use(bodyParser.urlencoded({
-    limit: '50mb',
-    parameterLimit: 100000,
-    extended: true 
-  }));
 app.use(helmet());
 
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use('/api', postRoutes);
 app.use('/api', userRoutes);

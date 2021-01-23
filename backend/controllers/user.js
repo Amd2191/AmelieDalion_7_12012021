@@ -14,17 +14,22 @@ exports.signup = (req, res, next) => {
     var username = req.body.username;
     var password = req.body.password;
     var bio = req.body.bio;
-    var picture=req.body.picture;
+    let picture;
 
     if (email == null || username == null || password == null) {
+        console.log('Problème de saisie');
+        console.log(email);
+        console.log(username);
+        console.log(password);
+        console.log(req.body);
         return res.status(400).json({
             'error': 'missing parameters'
         });
     }
-    if (username.length >= 13 || username.length <= 4) {
+    if (username.length >= 13 || username.length <= 3) {
         console.log('Problème avec username');
         return res.status(400).json({
-            'error': 'wrong username (must be length 5 - 12)'
+            'error': 'wrong username (must be length 4 - 12)'
         });
 
     }
@@ -74,7 +79,7 @@ exports.signup = (req, res, next) => {
                     username: username,
                     password: hash,
                     bio: bio,
-                    picture:picture,
+                    picture:`${req.protocol}://${req.get('host')}/images/users/${req.file.filename}`,
                     isAdmin: 0
                 })
                 .then(function (newUser) {

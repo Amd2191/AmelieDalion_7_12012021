@@ -32,7 +32,7 @@
                 <div class="profile-thumb-small">
                   <router-link to='/profile'>
                     <figure>
-                      <img src="../../public/images/AvatarMaker (6).png" alt="profile picture">
+                      <img :src="user.picture" alt="profile picture">
                     </figure>
                   </router-link>
                 </div>
@@ -54,10 +54,10 @@
         </div>
         <div class="mobile-header-profile">
           <!-- profile picture end -->
-          <div class="profile-thumb profile-setting-box">
+          <div class="profile-thumb profile-setting-box"  >
             <router-link to='/profile'>
               <figure class="profile-thumb-middle">
-                <img src="../../public/images/AvatarMaker (6).png" alt="profile picture">
+                <img :src="user.picture" alt="profile picture">
               </figure>
             </router-link>
           </div>
@@ -69,9 +69,35 @@
 
 </template>
 <script>
+  import axios from "axios"
   export default {
     name: 'header',
-    props: {}
+    data(){
+      return {
+        token:'',
+        user:[],
+        picture:''
+      }
+    },
+    created() {
+            var token = localStorage.getItem('token');
+            axios.get('http://localhost:3000/api/user/profile/', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => {
+                    console.log(response.data);
+                    this.user = response.data;
+
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+    },
+    methods:{
+    }
+
   }
 </script>
 <style lang="scss">

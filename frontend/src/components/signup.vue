@@ -12,17 +12,17 @@
             <h1 class="create-acc text-center">Créez votre compte</h1>
             <div class="signup-inner text-center">
               <h3 class="title">Wellcome to Adda</h3>
-              <form v-on:submit.prevent="submitForm" class="signup-inner--form" enctype="multipart/form-data">
+              <form v-on:submit.prevent="submitForm" class="signup-inner--form" enctype="multipart/form-data" action='/signup' method="post" id='signupForm'>
                 <div class="row">
                   <div class="col-12" :class="{ 'form-group--error': $v.email.$error }">
                     <input type="email" class="single-field" placeholder="Email" id="email"
-                      v-model.trim="$v.email.$model">
+                      v-model.trim="$v.email.$model" v-model="email">
                   </div>
                   <div class="error" v-if="!$v.email.required">Ce champ est requis.</div>
                   <div class="error" v-if="!$v.email.email">Votre email n'est pas valide.</div>
                   <div class="col-md-12" :class="{ 'form-group--error': $v.username.$error }">
                     <input type="text" class="single-field" placeholder="Pseudo" id="username"
-                      v-model.trim="$v.username.$model">
+                      v-model.trim="$v.username.$model" v-model="username">
                   </div>
                   <div class="error" v-if="!$v.username.required">Ce champ est requis.</div>
                   <div class="error" v-if="!$v.username.alpha">Ce champ ne peut contenir que des lettres.</div>
@@ -61,6 +61,7 @@
 
 <script>
   import axios from "axios"
+  import FormData from 'form-data'
   import {
     required,
     minLength,
@@ -72,12 +73,12 @@
     name: 'Signup',
     data() {
       return {
-        email: '',
-        username: '',
-        bio: '',
-        password: '',
-        picture: '',
-        file: null
+        email: null,
+        username: null,
+        bio: null,
+        password: null,
+        picture: null,
+        file: '',
       }
     },
     validations: {
@@ -99,37 +100,41 @@
       }
     },
     methods: {
-
       validationStatus: function (validation) {
         return typeof validation != "undefined" ? validation.$error : false;
       },
-      onFileChange(e) {
-        var files = e.target.files || e.dataTransfer.files;
-        if (!files.length)
-          return;
-        this.createImage(files[0]);
+      onFileChange(event) {
+        const file=event.target.files[0];
+        this.file=file;
       },
-      createImage(file) {
-        var reader = new FileReader();
-        var vm = this;
-        vm.image = new Image();
-        reader.onload = (e) => {
-          vm.image = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      },
+      //   var files = e.target.files || e.dataTransfer.files;
+      //   if (!files.length)
+      //     return;
+      //   this.createImage(files[0]);
+      // },
+      // createImage(file) {
+      //   var reader = new FileReader();
+      //   var vm = this;
+      //   vm.image = new Image();
+      //   reader.onload = (e) => {
+      //     vm.image = e.target.result;
+      //   };
+      //   reader.readAsDataURL(file);
+      // },
       submitForm: function () {
-        let username = document.getElementById('username').value;
-        let email = document.getElementById('email').value;
-        let password = document.getElementById('password').value;
-        let bio = document.getElementById('bio').value;
-        axios.post('http://localhost:3000/api/signup', {
-            email: email,
-            username: username,
-            password: password,
-            picture: this.image,
-            bio: bio
-          })
+        // let username = document.getElementById('username').value;
+        // let email = document.getElementById('email').value;
+        // let password = document.getElementById('password').value;
+        // let bio = document.getElementById('bio').value;
+        // let signupForm=document.getElementById('signupForm');
+        const formData= new FormData();
+        formData.append("username",this.username);
+        formData.append("email",this.email);
+        formData.append('password',this.password);
+        formData.append('bio',this.bio);
+        formData.append("picture",this.file);
+
+        axios.post('http://localhost:3000/api/signup', formData)
           .then(response => {
             console.log(response);
             this.$swal("Bienvenue", "Vous pouvez maintenant vous connecter", "success");
