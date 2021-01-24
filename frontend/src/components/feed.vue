@@ -77,7 +77,7 @@
 
                                 <div class="posted-author">
                                     <h6 class="author">{{post.User.username}}</h6>
-                                    <span class="post-time">20 min ago</span>
+                                    <span class="post-time">{{ post.updatedAt | moment("from", "now") }} </span>
                                 </div>
 
                                 <div class="post-settings-bar">
@@ -126,6 +126,7 @@
 <script>
     import axios from "axios"
     import FormData from 'form-data'
+    // import TimeAgo from 'javascript-time-ago'
     import {
         required
     } from 'vuelidate/lib/validators'
@@ -141,8 +142,8 @@
                 user: [],
                 posts: [],
                 username: null,
-                picture: null
-
+                picture: null,
+                updatedAt:null,
             }
         },
         validations: {
@@ -179,6 +180,8 @@
                 .catch((error) => {
                     console.log(error)
                 })
+        },
+        computed:{
         },
         methods: {
             deletePost(postId) {
