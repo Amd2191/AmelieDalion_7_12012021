@@ -194,6 +194,27 @@ exports.getUser = (req, res, next) => {
             'error': 'cannot fetch user'
         }));
 };
+exports.getOneUser = (req, res, next) => {
+    const userId = req.params.id
+    models.User.findOne({
+            attributes: ['id', 'email', 'username', 'bio', 'picture'],
+            where: {
+                id: userId
+            }
+        })
+        .then(user => {
+            if (user) {
+                res.status(201).json(user);
+            } else {
+                res.status(404).json({
+                    'error': 'user not found'
+                })
+            }
+        })
+        .catch(err => res.status(500).json({
+            'error': 'cannot fetch user'
+        }));
+};
 exports.modifyUser = (req, res, next) => {
     var bio = req.body.bio;
     var picture = req.body.picture;
@@ -252,14 +273,15 @@ exports.deleteUser = (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
     const userId = decodedToken.userId;
+    console.log(userId);
     models.User.findOne({
         where: {id: userId}
     })
     .then(user=>{
-        const filename=user.picture.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
-            user.destroy({
-                    id: req.params.id
+        const filename=user.picture.split('/images/users/')[1];
+        fs.unlink(`images/users/${filename}`, () => {
+            models.User.destroy({
+                   where:{id: user.id}
                 })
                 .then(() => res.status(200).json({
                     message: 'User deleted'

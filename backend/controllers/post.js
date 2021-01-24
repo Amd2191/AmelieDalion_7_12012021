@@ -10,7 +10,7 @@ exports.createPost = (req, res, next) => {
     const userId = decodedToken.userId;
     var title = req.body.title;
     var content = req.body.content;
-    var attachment = req.body.picture;
+    let attachment;
     if (title == null || content == null) {
         return res.status(400).json({
             'error': 'missing parameters'
@@ -35,10 +35,10 @@ exports.createPost = (req, res, next) => {
         },
         function (userFound, done) {
             if (userFound) {
-                let attachment=`${req.file.filename}`;
                 if(req.file!=undefined){
                     (req,res)=>{
                         try{
+                            let attachment=`${req.protocol}://${req.get('host')}/images/posts/${req.file.filename}`;
                             res.send(req.file);
                         }catch(err){
                             res.status(400).json({error});
@@ -46,7 +46,7 @@ exports.createPost = (req, res, next) => {
                     }
                 }
                 else{
-                    attachment=null;
+                    attachment='null';
                 }
                 let date= new Date();
                 models.Post.create({
@@ -80,11 +80,11 @@ exports.getAllPosts = (req, res, next) => {
     var order = req.query.order;
     var fields = req.query.fields;
     models.Post.findAll({
-            order: [(order != null) ? order.split(':') : ['title', 'ASC']],
+            order: [(order != null) ? order.split(':') : ['updatedAt', 'DESC']],
             attributes: (fields !== '*' && fields != null) ? fields.split(',') : null,
             include: [{
                 model: models.User,
-                attributes: ['username']
+                attributes: ['username','picture']
             }]
         })
         .then(posts => {
@@ -116,13 +116,13 @@ exports.deletePost = (req, res, next) => {
     });
     const post = models.Post.findone({
         where: {
-            id: req.params.id
+            id: req.body.postId
         }
     });
     if (userId === post.UserId || isAdmin.admin === true) {
-        const filename = post.attachment.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
-            post.destroy({
+        const filename = post.attachment.split('/images/posts/')[1];
+        fs.unlink(`images/posts/${filename}`, () => {
+            models.Post.destroy({
                     id: post.id
                 })
                 .then(() => res.status(200).json({

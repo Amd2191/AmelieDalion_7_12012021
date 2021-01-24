@@ -13,7 +13,8 @@
                     </div>
                     <div class="col-lg-2 col-md-3 d-md-block p-2">
                         <div class="profile-edit-panel d-flex flex-wrap">
-                            <button class="edit-btn m-1 text-nowrap" id="btn-delete-profile">Supprimer votre
+                            <button class="edit-btn m-1 text-nowrap" id="btn-delete-profile"
+                                @click="deleteUser">Supprimer votre
                                 profil</button>
                         </div>
                     </div>
@@ -32,8 +33,8 @@
                                     <ul class="author-into-list">
                                         <li><i class="bi bi-office-bag"></i>Email: <br> {{user.email}}<span
                                                 id="profile-email"></span></li>
-                                        <li v-if="user.bio== null"><i class="bi bi-office-bag"></i></li>
-                                        <li v-else><i class="bi bi-office-bag"></i>Votre philosophie: <br> {{user.bio}}</li>
+                                        <!-- <li v-if="user.bio == null"></li> -->
+                                        <li v-if="user.bio!=='null'">Votre philosophie: <br> {{user.bio}}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -75,6 +76,20 @@
                 })
         },
         methods: {
+            deleteUser() {
+                var token = localStorage.getItem('token');
+                axios.delete('http://localhost:3000/api/user/delete',{
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response=>{
+                console.log(response);
+                this.$swal("Succès", "Votre compte a bien été supprimé", "success");
+                window.location.href = '/#/login';
+                })
+
+            }
         }
 
     }

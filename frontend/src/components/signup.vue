@@ -107,26 +107,9 @@
         const file=event.target.files[0];
         this.file=file;
       },
-      //   var files = e.target.files || e.dataTransfer.files;
-      //   if (!files.length)
-      //     return;
-      //   this.createImage(files[0]);
-      // },
-      // createImage(file) {
-      //   var reader = new FileReader();
-      //   var vm = this;
-      //   vm.image = new Image();
-      //   reader.onload = (e) => {
-      //     vm.image = e.target.result;
-      //   };
-      //   reader.readAsDataURL(file);
-      // },
+
       submitForm: function () {
-        // let username = document.getElementById('username').value;
-        // let email = document.getElementById('email').value;
-        // let password = document.getElementById('password').value;
-        // let bio = document.getElementById('bio').value;
-        // let signupForm=document.getElementById('signupForm');
+
         const formData= new FormData();
         formData.append("username",this.username);
         formData.append("email",this.email);
@@ -137,6 +120,7 @@
         axios.post('http://localhost:3000/api/signup', formData)
           .then(response => {
             console.log(response);
+            document.getElementById('signupForm').reset();
             this.$swal("Bienvenue", "Vous pouvez maintenant vous connecter", "success");
           }).catch((error) => {
             console.log(error)

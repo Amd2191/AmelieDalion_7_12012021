@@ -7,6 +7,6 @@ const multer = require('../middlewares/postImages');
 
 router.post('/post/create',multer,postCtrl.createPost);
 router.get('/post',postCtrl.getAllPosts);
-router.delete('/:id',postCtrl.deletePost)
+router.delete('/post/delete',postCtrl.deletePost)
 
 module.exports = router
