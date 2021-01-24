@@ -105,25 +105,43 @@ exports.getAllPosts = (req, res, next) => {
 };
 
 exports.deletePost = (req, res, next) => {
-    try{
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'SrYyE!&J5BzF~oh^Z$i=');
     const userId = decodedToken.userId;
-    const isAdmin = models.User.findOne({
+    let postId=req.params.id;
+    console.log(postId);
+    models.User.findOne({
         where: {
             id: userId
         }
-    });
-    const post = models.Post.findone({
-        where: {
-            id: req.body.postId
-        }
-    });
-    if (userId === post.UserId || isAdmin.admin === true) {
-        const filename = post.attachment.split('/images/posts/')[1];
+    })
+    .then(user=>{
+        if(user.isAdmin == true){
+            const filename = post.attachment.split('/images/posts/')[1];
+            fs.unlink(`images/posts/${filename}`, () => {
+                models.Post.destroy({
+                        where:{id: postId}
+                    })
+                    .then(() => res.status(200).json({
+                        message: 'Post deleted'
+                    }))
+                    .catch(error => res.status(404).json({
+                        'error': 'post not found'
+                    }));
+            });
+        }else{
+            models.Post.findOne({
+                where: {
+                    id: req.params.id
+                }
+            })
+            .then(post=>{
+                console.log(post.id);
+                if(post.UserId==userId){
+                    const filename = post.attachment.split('/images/posts/')[1];
         fs.unlink(`images/posts/${filename}`, () => {
             models.Post.destroy({
-                    id: post.id
+                    where:{id: post.id}
                 })
                 .then(() => res.status(200).json({
                     message: 'Post deleted'
@@ -132,13 +150,14 @@ exports.deletePost = (req, res, next) => {
                     'error': 'post not found'
                 }));
         });
-    } else {
-        res.status(400).json({
-            'error': 'You are not allowed to delete this post'
-        })
-    }
-}catch(error) {
-        res.status(500).json({
-        'error': 'cannot delete post'
-    })};
+                }else{
+                    res.status(400).json({
+                        'error': 'You are not allowed to delete this post'
+                    })
+                }
+            })
+        }
+    })
+    .catch(error => res.status(500).json({'error':'cannot delete post'
+    }));
 };

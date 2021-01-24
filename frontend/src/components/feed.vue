@@ -86,7 +86,7 @@
                                     <span></span>
                                     <div class="post-settings arrow-shape">
                                         <ul>
-                                            <li><button>Supprimer son post</button></li>
+                                            <li><button @click="deletePost(post.id)">Supprimer son post</button></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -181,9 +181,9 @@
                 })
         },
         methods: {
-            deletePost() {
+            deletePost(postId) {
                 var token = localStorage.getItem('token');
-                axios.delete('http://localhost:3000/api/post/delete', {
+                axios.delete('http://localhost:3000/api/post/delete/'+postId, {
                         headers: {
                             'Authorization': 'Bearer ' + token
                         }
@@ -191,7 +191,7 @@
                     .then(response => {
                         console.log(response);
                         this.$swal("Succès", "Votre post a bien été supprimé", "success");
-                        window.location.href = '/#/feed';
+                        window.location.href = '/';
                     })
 
             },
