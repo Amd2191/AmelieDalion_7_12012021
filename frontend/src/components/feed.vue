@@ -69,7 +69,7 @@
                                 <div class="profile-thumb">
                                     <a href="#">
                                         <figure class="profile-thumb-middle">
-                                            <img  :src="post.User.picture" alt="profile picture">
+                                            <img :src="post.User.picture" alt="profile picture">
                                         </figure>
                                     </a>
                                 </div>
@@ -92,25 +92,42 @@
                                 </div>
                             </div>
                             <div class="post-content">
-                                <h6>{{post.title}}</h6>
-                                <p class="post-desc">
-                                    {{post.content}}
-                                </p>
-                                <div  class="post-thumb-gallery">
+                                <div class="post-thumb-gallery">
                                     <figure class="post-thumb img-popup">
                                         <img v-if="post.attachment!=='null'" :src="post.attachment" alt="post image">
                                     </figure>
                                 </div>
-                                <div class="post-meta">
+                                <h6>{{post.title}}</h6>
+                                <p class="post-desc">
+                                    {{post.content}}
+                                </p>
+                                <!-- <form class="share-text-box" v-on:submit.prevent="submitComment(postId)" id="postComment">
+                                <textarea name="share" class="share-text-field mb-2" aria-disabled="true"
+                                    placeholder="Votre commentaire" data-toggle="modal" data-target="#textbox" id="comment">
+                                    </textarea>
+                                <button class="btn-share" type="submit">publier</button>
+                                </form> -->
+                                <!-- <div class="post-meta">
                                     <ul class="comment-share-meta">
                                         <li>
-                                            <button class="post-comment">
-                                                <i class="bi bi-chat-bubble"></i>
-                                                <span>41 commentaires</span>
+                                            <button class="post-comment" @click="showComments=yes">
+                                                <span> Commentaires</span>
                                             </button>
                                         </li>
                                     </ul>
                                 </div>
+                                <div v-show="yes">
+                                    <div v-if="post.id=comment.postId">
+                                        <div class="comment" v-for="comment in comments" :key:comment.id>
+                                            <div class="posted-author">
+                                                <h6 class="author">{{comment.User.username}}</h6>
+                                                <span class="post-time">{{ comment.updatedAt | moment("from", "now") }}
+                                                </span>
+                                                <div class="commentContent">{{comment.content}} </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> -->
                             </div>
                         </div>
                         <!-- post status end -->
@@ -143,7 +160,8 @@
                 posts: [],
                 username: null,
                 picture: null,
-                updatedAt:null,
+                updatedAt: null,
+                showComments: 'no'
             }
         },
         validations: {
@@ -170,7 +188,7 @@
                     console.log(error)
                 })
         },
-        mounted(){
+        mounted() {
 
             axios.get('http://localhost:3000/api/post')
                 .then(response => {
@@ -181,12 +199,11 @@
                     console.log(error)
                 })
         },
-        computed:{
-        },
+        computed: {},
         methods: {
             deletePost(postId) {
                 var token = localStorage.getItem('token');
-                axios.delete('http://localhost:3000/api/post/delete/'+postId, {
+                axios.delete('http://localhost:3000/api/post/delete/' + postId, {
                         headers: {
                             'Authorization': 'Bearer ' + token
                         }
